@@ -20,7 +20,7 @@ var player = {
     height:20,
     color:'green',
     numofbul:0,
-
+    shootang:0,
     pressdown:false,
     pressup:false,
     pressleft:false,
@@ -37,7 +37,8 @@ Enemy = function (id,x, y, spdx, spdy, width, height){
         id:id,
         width:width,
         height:height,
-        color:'red'
+        color:'red',
+        shootang:0
     };
     enemyList[id] = enemy;
 }
@@ -69,9 +70,12 @@ testCollisionEntity = function(entity1, entity2){
 }
 
 // controlls the player with mouse
-//document.onmousemove = function(mouse){
-//     var mouseX = mouse.clientX - document.getElementById('ctx').getBoundingClientRect().left;
-//     var mouseY = mouse.clientY - document.getElementById('ctx').getBoundingClientRect().top;
+document.onmousemove = function(mouse){
+
+
+
+    var mouseX = mouse.clientX - document.getElementById('ctx').getBoundingClientRect().left;
+    var mouseY = mouse.clientY - document.getElementById('ctx').getBoundingClientRect().top;
 
 //     if(mouseX < player.width/2)
 //         mouseX = player.width/2;
@@ -82,37 +86,49 @@ testCollisionEntity = function(entity1, entity2){
 //     if(mouseY > HEIGHT - player.height/2)
 //         mouseY = HEIGHT - player.height/2;
 
-
-//     player.x = mouseX;
-//     player.y = mouseY;
-// }
+    mouseX -= player.x;
+    mouseY -= player.y;
+    player.shootang = Math.atan2(mouseX, mouseY) /Math.PI * 180;
+    // player.x = mouseX;
+    // player.y = mouseY;
+ }
 
 document.onclick = function(){
     if(player.numofbul > 0){
-        randomlyGenerateBullet();
+        randomlyGenerateBullet(player);
         player.numofbul--;
     }
 }
 
+document.oncontextmenu = function(mouse){
+    if(player.numofbul >= 10){
+        for(var i = 0; i < 360; i += 36){
+            randomlyGenerateBullet(player, i);
+        }
+        player.numofbul -= 10;
+    }
+    mouse.preventDefault();
+}
+
 document.onkeydown = function(event){
-    if(event.key === 'd')
+    if(event.key === 'ArrowRight')
         player.pressright = true;
-    else if(event.key === 's')
+    else if(event.key === 'ArrowDown')
         player.pressdown = true;
-    else if(event.key === 'a')
+    else if(event.key === 'ArrowLeft')
         player.pressleft = true;
-    else if(event.key === 'w')
+    else if(event.key === 'ArrowUp')
         player.pressup = true;
 }
 
 document.onkeyup = function(event){
-    if(event.key === 'd')
+    if(event.key === 'ArrowRight')
         player.pressright = false;
-    else if(event.key === 's')
+    else if(event.key === 'ArrowDown')
         player.pressdown = false;
-    else if(event.key === 'a')
+    else if(event.key === 'ArrowLeft')
         player.pressleft = false;
-    else if(event.key === 'w')
+    else if(event.key === 'ArrowUp')
         player.pressup = false;
 }
 
@@ -258,6 +274,7 @@ update = function (){
     drawEntity(player);
     ctx.fillText(player.hp + "hp", 0, 30);
     ctx.fillText("score: " + score, 200, 30);
+    ctx.fillText("Bullets: " + player.numofbul, 350, 490);
 }
 
 // generate enemies with random function
@@ -298,7 +315,7 @@ randomlyGenerateUpgrade = function(){
     var spdx = 0;
     var spdy = 0;
 
-    if(Math.random() < 0.9){
+    if(Math.random() < 0.5){
         var category = 'one';
         var color = 'orange';
     }else{
@@ -326,14 +343,17 @@ bullet = function (id,x, y, spdx, spdy, width, height){
 }
 
 // generates bullets
-randomlyGenerateBullet = function(){
-    var x = player.x;
-    var y = player.y;
+randomlyGenerateBullet = function(actor, overwrite){
+    var x = actor.x;
+    var y = actor.y;
     var height = 5; 
     var width = 5;
     var id = Math.random();
 
-    var angle = Math.random()*360;
+    var angle = actor.shootang;
+    if(overwrite != undefined)
+       angle = overwrite;
+
     var spdx = Math.cos(angle/180*Math.PI)*5;
     var spdy = Math.sin(angle/180*Math.PI)*5;
     bullet(id,x,y,spdx,spdy,width,height);
