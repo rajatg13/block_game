@@ -69,30 +69,18 @@ testCollisionEntity = function(entity1, entity2){
     return testCollisionRect(rect1, rect2);
 }
 
-// controlls the player with mouse
+// controls the shooting angle
 document.onmousemove = function(mouse){
-
-
 
     var mouseX = mouse.clientX - document.getElementById('ctx').getBoundingClientRect().left;
     var mouseY = mouse.clientY - document.getElementById('ctx').getBoundingClientRect().top;
 
-//     if(mouseX < player.width/2)
-//         mouseX = player.width/2;
-//     if(mouseX > WIDTH - player.width/2)
-//         mouseX = WIDTH - player.width/2;
-//     if(mouseY < player.height/2)
-//         mouseY = player.height/2;
-//     if(mouseY > HEIGHT - player.height/2)
-//         mouseY = HEIGHT - player.height/2;
-
     mouseX -= player.x;
     mouseY -= player.y;
     player.shootang = Math.atan2(mouseX, mouseY) /Math.PI * 180;
-    // player.x = mouseX;
-    // player.y = mouseY;
  }
 
+ // shoots bullets on left click
 document.onclick = function(){
     if(player.numofbul > 0){
         randomlyGenerateBullet(player);
@@ -100,6 +88,7 @@ document.onclick = function(){
     }
 }
 
+// shoots special attack on right click
 document.oncontextmenu = function(mouse){
     if(player.numofbul >= 10){
         for(var i = 0; i < 360; i += 36){
@@ -110,6 +99,7 @@ document.oncontextmenu = function(mouse){
     mouse.preventDefault();
 }
 
+// know when a key is pressed
 document.onkeydown = function(event){
     if(event.key === 'ArrowRight')
         player.pressright = true;
@@ -121,6 +111,7 @@ document.onkeydown = function(event){
         player.pressup = true;
 }
 
+// know when a key is done pressing
 document.onkeyup = function(event){
     if(event.key === 'ArrowRight')
         player.pressright = false;
@@ -132,6 +123,7 @@ document.onkeyup = function(event){
         player.pressup = false;
 }
 
+// update the position of player based on the keys pressed
 updatePlayerPosition = function(){
     if(player.pressright)
         player.x += 10;
@@ -142,7 +134,7 @@ updatePlayerPosition = function(){
     else if(player.pressup)
         player.y -= 10;
 
-    
+    // keep the player in the game boundary
     if(player.x < player.width/2)
         player.x = player.width/2;
     if(player.x > WIDTH - player.width/2)
@@ -214,21 +206,26 @@ update = function (){
     frameCount++;
     score++;
 
+    // generate in enemy after 4s.
     if(frameCount % 100 == 0)
         randomlyGenerateEnemy();
 
+    // generate upgrade after 3s.
     if(frameCount % 75 == 0)
         randomlyGenerateUpgrade();
 
 
+    // go through bullet list
     for(var key in bulletList){
         updateEntity(bulletList[key]);
-        bulletList[key].timer++;
+
+        // delete bullet if it touches boundary
         if(bulletList[key].x >= 500 || bulletList[key].x <= 0 || bulletList[key].y >= 500 || bulletList[key].y <= 0){
             delete bulletList[key];
             continue;
         }
 
+        // if bullet collides with enemy then delete both
         for(var key2 in enemyList){
             var isColliding = testCollisionEntity(bulletList[key], enemyList[key2]);
             if(isColliding){
@@ -239,6 +236,7 @@ update = function (){
         }
     }
     
+    // go through upgradelist
     for(var key in upgradeList){
         updateEntity(upgradeList[key]);
         var isColliding = testCollisionEntity(player, upgradeList[key]);
@@ -255,6 +253,7 @@ update = function (){
     }
 
 
+    // go through enemies
     for(var key in enemyList){
         updateEntity(enemyList[key]);
 
@@ -270,6 +269,7 @@ update = function (){
         newGame();
     }
 
+    // update the position of player controlled through keys
     updatePlayerPosition();
     drawEntity(player);
     ctx.fillText(player.hp + "hp", 0, 30);
